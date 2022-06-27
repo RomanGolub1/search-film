@@ -1,32 +1,30 @@
-let moviesList = null;
-let inputSearch = null;
-let triggerMode = false;
+export let moviesList = null;
+export let inputSearch = null;
+export let triggerMode = false;
 
-const createElement = ({
-                           type,
-                           attrs,
-                           container = null,
-                           position = 'append',
-                           evt = null,
-                           handler = null
-                       }) => {
+export const createElement = ({
+                                  type,
+                                  attrs,
+                                  container = null,
+                                  position = 'append',
+                                  evt = null,
+                                  handler = null
+                              }) => {
     const el = document.createElement(type);
 
     Object.keys(attrs).forEach((key) => {
-        if (key !== 'innerText') {
-            el.setAttribute(key, attrs[key]);
-        } else {
-            el.innerHTML = attrs[key];
-        }
+        if (key !== 'innerText') el.setAttribute(key, attrs[key]);
+        else el.innerHTML = attrs[key];
     });
 
     if (container && position === 'append') container.append(el);
     if (container && position === 'prepend') container.prepend(el);
+    if (evt && handler && typeof handler === 'function') el.addEventListener(evt, handler);
 
     return el;
-}
+};
 
-const createStyle = () => {
+export const createStyle = () => {
     createElement({
         type: 'style',
         attrs: {
@@ -90,9 +88,7 @@ body {
     });
 };
 
-const triggerModeHandler = () => triggerMode = !triggerMode;
-
-const createMarkup = () => {
+export const createMarkup = () => {
     const container = createElement({
         type: 'div',
         attrs: {class: 'container'},
@@ -142,7 +138,7 @@ const createMarkup = () => {
         container: searchBox,
         position: 'append',
         evt: 'click',
-        handler: triggerModeHandler
+        handler: () => triggerMode = !triggerMode
     });
 
     createElement({
@@ -155,18 +151,14 @@ const createMarkup = () => {
         container: searchBox
     });
 
-
-    createElement({
+    moviesList = createElement({
         type: 'div',
         attrs: {class: 'movies'},
         container
     });
-
-
-    inputSearch = document.querySelector('#search');
 };
 
-const addMovieToList = (movie) => {
+export const addMovieToList = (movie) => {
     const item = createElement({
         type: 'div',
         attrs: {class: 'movie'},
@@ -184,48 +176,4 @@ const addMovieToList = (movie) => {
     });
 };
 
-const getData = (url) => fetch(url)
-    .then((res) => res.json())
-    .then((json) => {
-
-        if (!json || !json.Search) throw Error('Сервер повернув не правильну відповідь.')
-
-        return json.Search;
-    });
-
-const delay = (() => {
-    let timer = 0;
-
-    return (cb, ms) => {
-        clearTimeout(timer)
-        timer = setTimeout(cb, ms)
-    };
-})();
-
-const clearMovieMarkup = () => moviesList && (moviesList.innerHTML = '');
-
-const siteUrl = 'http://www.omdbapi.com/';
-let searchLast = ' ';
-
-createMarkup();
-createStyle();
-
-inputSearch.addEventListener('keyup', (e) => {
-    delay(() => {
-
-        const searchString = e.target.value.trim();
-
-        if (searchString && searchString.length > 3 && searchString !== searchLast) {
-            if (!triggerMode) clearMovieMarkup();
-
-            getData(`${siteUrl}?apikey=18b8609f&s=${searchString}`)
-                .then((movies) => movies.forEach((movie) => addMovieToList(movie)))
-                .catch((err) => console.error(err));
-        }
-
-        searchLast = searchString;
-    }, 2000);
-
-
-});
-
+export const clearMovieMarkup = (el) => el && (el.innerHTML = '');
